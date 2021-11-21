@@ -1,0 +1,106 @@
+<mujoco model="Rover drives through ditch">
+
+	<include file="scene2.xml"/>
+
+    <compiler inertiafromgeom="true" angle="degree"/>
+	<option	timestep="0.02" gravity="0 0 -9.81"/>
+	
+	<asset>
+		<texture name="texgeom" type="cube" builtin="flat" width="127" height="1278"
+            rgb1="0.8 0.6 0.4" rgb2="0.8 0.6 0.4" markrgb="1 1 1" random="0.01"/>
+		<material name="MatWheel" specular="1" rgba=".1 .1 .1 1"/>
+		<material name="MatBody" specular="1" rgba=".6 .6 .1 1"/>
+		<material name="matgeom" texture="texgeom" texuniform="true" rgba="0.8 0.6 .4 1"/>
+		<material name='object3' texture="texgeom" texuniform="true" rgba=".4 .9 .9 1" />
+	</asset>
+	
+	<default>
+		<!--making every geom collidable. expect those that dont are default-->
+		<geom contype="1" conaffinity="1"/>
+		<default class="object3">
+            <geom type="box" material="object3" size="0.15 0.1 0.05" mass="14"/>
+    	</default>
+	</default>
+	
+	<visual>
+		<scale camera=".5"/>
+		<map znear="0.001" zfar="1000"/>
+	</visual>
+	
+    <worldbody>
+
+    	<camera name="tracking-camera" mode="targetbody" target="rover" pos="3 2 1"/>
+
+    	<body pos="0 0 1">
+            <freejoint/>
+            <geom class="object3"/>
+        </body>
+
+		<body name="rover" pos="0 0 0">
+			
+			<light name="lamp" active="true" directional="true" cutoff="4" exponent="20" diffuse="1 1 1" specular="0 0 0" pos="0 0 2.5" dir="0 0 -1 "/>			
+			<camera name="first-person" mode="fixed" pos=".22 0 .08" euler="0 -133 -90" fovy="90"/>
+			
+			<joint name="centroid" type="free" pos="0 0 0"/>
+			<body name="rover-body-whole">
+            	<geom name="rover-body" type="box" pos="0 0 0" size="0.2 0.16 .095" mass="12" material="MatBody"/>
+				<site type="box" size=".01 .07 .07" pos=".2 0 0"/>
+				<geom name="rover-container-bottom" type="box" pos="0 0 0.095" size="0.3 0.2 .01" material="matgeom"/>
+				<geom name="rover-container-front" type="box" pos="0.3 0.0 0.135" size="0.01 0.2 0.03" material="matgeom"/>
+				<geom name="rover-container-back" type="box" pos="-0.3 0 0.135" size="0.01 0.2 0.03" material="matgeom"/>
+				<geom name="rover-container-left" type="box" pos="0 0.2 0.135" size="0.3 0.01 0.03" material="matgeom"/>
+				<geom name="rover-container-right" type="box" pos="0 -0.2 0.135" size="0.3 0.01 0.03" material="matgeom"/>
+			</body>
+            <body name="r-l-wheel" pos="-0.2 0.15 -0.15">
+                <joint name="r-l-drive-hinge" type="hinge" pos="0 0 0" axis="0 1 0" damping="0.01" />
+                <geom type="ellipsoid" size=".06" fromto="0 0 0 0 0.06 0" mass=".125" material="MatWheel" condim="4"/>
+				<site size=".01" pos="0 .05 .03"/>
+				<site size=".01" pos="0 .05 -.03"/>
+				<site size=".01" pos="0 0 .03"/>
+				<site size=".01" pos="0 0 -.03"/>
+            </body>
+
+            <body name="r-r-wheel" pos="-0.2 -0.15 -0.15">
+                <joint name="r-r-drive-hinge" type="hinge" pos="0 0 0" axis="0 1 0" damping="0.01"/>
+                <geom type="ellipsoid" size=".06" fromto="0 0 0 0 -0.06 0" mass=".125" material="MatWheel" condim="4"/>
+				<site size=".01" pos="0 -.05 .03"/>
+				<site size=".01" pos="0 -.05 -.03"/>
+				<site size=".01" pos="0 0 .03"/>
+				<site size=".01" pos="0 0 -.03"/>
+            </body>
+			<body name="f-l-wheel" pos=".2 0.15 -.15">
+				<body>
+					<joint name="f-l-hinge" type="hinge" pos="0 0 0" axis="0 1 0"/>
+					<geom type="ellipsoid" size=".06" fromto="0 0 0 0 0.06 0" mass=".125" material="MatWheel" condim="4"/>
+					<site size=".01" pos="0 .05 .03"/>
+					<site size=".01" pos="0 .05 -.03"/>
+					<site size=".01" pos="0 0 .03"/>
+					<site size=".01" pos="0 0 -.03"/>
+				</body>
+			</body>
+			<body name="f-r-wheel" pos=".2 -0.15 -.15">
+				<body>
+					<joint name="f-r-hinge" type="hinge" pos="0 0 0" axis="0 1 0"/>
+					<geom type="ellipsoid" size=".06" fromto="0 0 0 0 -0.06 0" mass=".125" material="MatWheel" condim="4"/>
+					<site size=".01" pos="0 -.05 .03"/>
+					<site size=".01" pos="0 -.05 -.03"/>
+					<site size=".01" pos="0 0 .03"/>
+					<site size=".01" pos="0 0 -.03"/>
+				</body>
+			</body>
+			
+        </body>
+    </worldbody>
+	
+	<tendon>
+		<fixed name="rear-differential">
+			<joint joint="r-l-drive-hinge" coef="2"/>
+			<joint joint="r-r-drive-hinge" coef="2"/>
+		</fixed>
+	</tendon>
+
+    <actuator>
+        <motor name="drive" tendon="rear-differential" ctrllimited="true" ctrlrange="-1.0 1.0" gear="1.5"/>
+    </actuator>
+
+</mujoco>
